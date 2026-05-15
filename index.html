@@ -67,6 +67,9 @@
   --font-text:    "SF Pro Text", system-ui, -apple-system, BlinkMacSystemFont, "Inter", sans-serif;
   --font-mono:    "SF Mono", "JetBrains Mono", "Consolas", monospace;
 
+  /* Font scale */
+  --font-scale: 1;
+
   /* Transitions */
   --ease: cubic-bezier(0.25, 0.1, 0.25, 1);
   --ease-spring: cubic-bezier(0.4, 0, 0.2, 1);
@@ -93,7 +96,7 @@
 html, body { height: 100%; overflow: hidden; }
 body {
   font-family: var(--font-text);
-  font-size: 17px;
+  font-size: calc(17px * var(--font-scale));
   font-weight: 400;
   line-height: 1.47;
   letter-spacing: -0.374px;
@@ -118,6 +121,7 @@ body {
   overflow: hidden;
   position: relative;
   transition: background 0.3s var(--ease);
+  --font-scale: 1;
 }
 @media (max-width: 420px) {
   .phone { width: 100vw; height: 100vh; }
@@ -152,7 +156,7 @@ body {
 }
 .header h1 {
   font-family: var(--font-display);
-  font-size: 34px;
+  font-size: calc(34px * var(--font-scale));
   font-weight: 600;
   line-height: 1.1;
   letter-spacing: -0.374px;
@@ -260,7 +264,7 @@ body {
 }
 .timer-time {
   font-family: var(--font-display);
-  font-size: 48px;
+  font-size: calc(48px * var(--font-scale));
   font-weight: 600;
   letter-spacing: -0.28px;
   line-height: 1.07;
@@ -377,7 +381,7 @@ body {
 }
 .stat-card .stat-num {
   font-family: var(--font-display);
-  font-size: 28px;
+  font-size: calc(28px * var(--font-scale));
   font-weight: 600;
   line-height: 1.14;
   letter-spacing: 0.196px;
@@ -484,7 +488,7 @@ body {
 .task-content { flex: 1; min-width: 0; }
 .task-name {
   font-family: var(--font-text);
-  font-size: 17px;
+  font-size: calc(17px * var(--font-scale));
   font-weight: 600;
   letter-spacing: -0.374px;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
@@ -736,7 +740,7 @@ body {
 }
 .settings-item-label {
   font-family: var(--font-text);
-  font-size: 17px;
+  font-size: calc(17px * var(--font-scale));
   font-weight: 400;
   letter-spacing: -0.374px;
 }
@@ -803,7 +807,7 @@ body {
 }
 .modal-title {
   font-family: var(--font-display);
-  font-size: 24px;
+  font-size: calc(24px * var(--font-scale));
   font-weight: 600;
   line-height: 1.19;
   letter-spacing: 0.231px;
@@ -1031,15 +1035,15 @@ body {
         <!-- Today Stats -->
         <div class="stats-row">
           <div class="stat-card">
-            <div class="stat-num" id="todayTomatoes">3</div>
+            <div class="stat-num" id="todayTomatoes">0</div>
             <div class="stat-label">今日番茄</div>
           </div>
           <div class="stat-card">
-            <div class="stat-num" id="todayFocus">1h 15m</div>
+            <div class="stat-num" id="todayFocus">0h 0m</div>
             <div class="stat-label">专注时长</div>
           </div>
           <div class="stat-card">
-            <div class="stat-num" id="todayProgress">60%</div>
+            <div class="stat-num" id="todayProgress">0%</div>
             <div class="stat-label">目标进度</div>
           </div>
         </div>
@@ -1067,67 +1071,18 @@ body {
         <button class="period-option" onclick="switchStatsPeriod(this)">自定义</button>
       </div>
 
-      <div class="stats-highlight-cards" id="statsHighlightCards">
-        <div class="stats-highlight-card">
-          <div class="hl-icon">◉</div>
-          <div class="hl-num" style="color:var(--accent)">18</div>
-          <div class="hl-label">总番茄数</div>
-        </div>
-        <div class="stats-highlight-card">
-          <div class="hl-icon">◷</div>
-          <div class="hl-num">7.5h</div>
-          <div class="hl-label">总专注时长</div>
-        </div>
-        <div class="stats-highlight-card">
-          <div class="hl-icon">◫</div>
-          <div class="hl-num">2.5h</div>
-          <div class="hl-label">日均专注</div>
-        </div>
-      </div>
+      <div class="stats-highlight-cards" id="statsHighlightCards"></div>
 
-      <div class="insight-card">
-        <span style="font-size:18px">✦</span>
-        本周平均每日专注2.5小时，较上周提升12%
-      </div>
+      <div class="insight-card" id="statsInsight"></div>
 
       <div class="chart-card">
         <div class="chart-title">本周专注趋势</div>
-        <div class="chart-area">
-          <div class="chart-bar-group"><div class="chart-bar" style="height:60%"></div><span class="chart-bar-label">一</span></div>
-          <div class="chart-bar-group"><div class="chart-bar" style="height:45%"></div><span class="chart-bar-label">二</span></div>
-          <div class="chart-bar-group"><div class="chart-bar" style="height:80%"></div><span class="chart-bar-label">三</span></div>
-          <div class="chart-bar-group"><div class="chart-bar" style="height:35%;background:var(--text-muted)"></div><span class="chart-bar-label">四</span></div>
-          <div class="chart-bar-group"><div class="chart-bar" style="height:70%"></div><span class="chart-bar-label">五</span></div>
-          <div class="chart-bar-group"><div class="chart-bar" style="height:25%"></div><span class="chart-bar-label">六</span></div>
-          <div class="chart-bar-group"><div class="chart-bar" style="height:10%"></div><span class="chart-bar-label">日</span></div>
-        </div>
+        <div class="chart-area" id="statsWeeklyChart"></div>
       </div>
 
       <div class="chart-card">
         <div class="chart-title">任务专注分布</div>
-        <div style="display:flex;flex-direction:column;gap:14px">
-          <div style="display:flex;align-items:center;gap:12px">
-            <span style="font-size:14px;width:64px;flex-shrink:0;font-weight:500">项目文档</span>
-            <div style="flex:1;height:6px;background:var(--card-border);border-radius:3px;overflow:hidden">
-              <div style="height:100%;width:40%;background:var(--accent);border-radius:3px"></div>
-            </div>
-            <span style="font-size:14px;color:var(--text-secondary);width:28px;text-align:right">8</span>
-          </div>
-          <div style="display:flex;align-items:center;gap:12px">
-            <span style="font-size:14px;width:64px;flex-shrink:0;font-weight:500">高数复习</span>
-            <div style="flex:1;height:6px;background:var(--card-border);border-radius:3px;overflow:hidden">
-              <div style="height:100%;width:25%;background:var(--accent);border-radius:3px;opacity:0.7"></div>
-            </div>
-            <span style="font-size:14px;color:var(--text-secondary);width:28px;text-align:right">5</span>
-          </div>
-          <div style="display:flex;align-items:center;gap:12px">
-            <span style="font-size:14px;width:64px;flex-shrink:0;font-weight:500">读书笔记</span>
-            <div style="flex:1;height:6px;background:var(--card-border);border-radius:3px;overflow:hidden">
-              <div style="height:100%;width:15%;background:var(--accent);border-radius:3px;opacity:0.5"></div>
-            </div>
-            <span style="font-size:14px;color:var(--text-secondary);width:28px;text-align:right">3</span>
-          </div>
-        </div>
+        <div id="statsTaskDist" style="display:flex;flex-direction:column;gap:14px"></div>
       </div>
     </div>
 
@@ -1136,42 +1091,42 @@ body {
       <div class="settings-group">
         <div class="settings-group-title">计时设置</div>
         <div class="settings-card">
-          <div class="settings-item" onclick="alert('调整工作时长: 10-60分钟')">
+          <div class="settings-item" onclick="openOptionPicker('workDuration')">
             <div class="settings-item-left">
               <div class="settings-item-icon" style="background:transparent">◉</div>
               <span class="settings-item-label">工作时长</span>
             </div>
             <div class="settings-item-right">
-              <span class="settings-item-value">25分钟</span>
+              <span class="settings-item-value" id="setWorkDuration">25分钟</span>
               <span>›</span>
             </div>
           </div>
-          <div class="settings-item">
+          <div class="settings-item" onclick="openOptionPicker('shortBreak')">
             <div class="settings-item-left">
               <div class="settings-item-icon" style="background:transparent">◷</div>
               <span class="settings-item-label">短休息时长</span>
             </div>
             <div class="settings-item-right">
-              <span class="settings-item-value">5分钟</span>
+              <span class="settings-item-value" id="setShortBreak">5分钟</span>
               <span>›</span>
             </div>
           </div>
-          <div class="settings-item">
+          <div class="settings-item" onclick="openOptionPicker('longBreak')">
             <div class="settings-item-left">
               <div class="settings-item-icon" style="background:transparent">◌</div>
               <span class="settings-item-label">长休息时长</span>
             </div>
             <div class="settings-item-right">
-              <span class="settings-item-value">15分钟</span>
+              <span class="settings-item-value" id="setLongBreak">15分钟</span>
               <span>›</span>
             </div>
           </div>
-          <div class="settings-item">
+          <div class="settings-item" onclick="toggleAutoSwitch()">
             <div class="settings-item-left">
               <div class="settings-item-icon" style="background:transparent">↻</div>
               <span class="settings-item-label">自动切换时段</span>
             </div>
-            <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+            <div class="toggle" id="toggleAutoSwitch"></div>
           </div>
         </div>
       </div>
@@ -1179,27 +1134,20 @@ body {
       <div class="settings-group">
         <div class="settings-group-title">提醒设置</div>
         <div class="settings-card">
-          <div class="settings-item">
+          <div class="settings-item" onclick="toggleSetting('soundEnabled')">
             <div class="settings-item-left">
               <div class="settings-item-icon" style="background:transparent">♪</div>
               <span class="settings-item-label">声音提醒</span>
             </div>
-            <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+            <div class="toggle" id="toggleSound"></div>
           </div>
-          <div class="settings-item">
-            <div class="settings-item-left">
-              <div class="settings-item-icon" style="background:transparent">☷</div>
-              <span class="settings-item-label">震动提醒</span>
-            </div>
-            <div class="toggle on" onclick="this.classList.toggle('on')"></div>
-          </div>
-          <div class="settings-item">
+          <div class="settings-item" onclick="openOptionPicker('ringtone')">
             <div class="settings-item-left">
               <div class="settings-item-icon" style="background:transparent">♫</div>
               <span class="settings-item-label">铃声选择</span>
             </div>
             <div class="settings-item-right">
-              <span class="settings-item-value">默认铃声</span>
+              <span class="settings-item-value" id="setRingtone">默认铃声</span>
               <span>›</span>
             </div>
           </div>
@@ -1207,7 +1155,7 @@ body {
       </div>
 
       <div class="settings-group">
-        <div class="settings-group-title">主题设置</div>
+        <div class="settings-group-title">显示设置</div>
         <div class="settings-card">
           <div class="settings-item" onclick="toggleTheme()">
             <div class="settings-item-left">
@@ -1219,13 +1167,13 @@ body {
               <span>›</span>
             </div>
           </div>
-          <div class="settings-item">
+          <div class="settings-item" onclick="openOptionPicker('fontSize')">
             <div class="settings-item-left">
               <div class="settings-item-icon" style="background:transparent">A</div>
               <span class="settings-item-label">字体大小</span>
             </div>
             <div class="settings-item-right">
-              <span class="settings-item-value">标准</span>
+              <span class="settings-item-value" id="setFontSize">标准</span>
               <span>›</span>
             </div>
           </div>
@@ -1233,34 +1181,24 @@ body {
       </div>
 
       <div class="settings-group">
-        <div class="settings-group-title">账号与数据</div>
+        <div class="settings-group-title">数据管理</div>
         <div class="settings-card">
-          <div class="settings-item">
-            <div class="settings-item-left">
-              <div class="settings-item-icon" style="background:transparent">◎</div>
-              <span class="settings-item-label">账号登录</span>
-            </div>
-            <div class="settings-item-right">
-              <span class="settings-item-value">未登录</span>
-              <span>›</span>
-            </div>
-          </div>
-          <div class="settings-item">
-            <div class="settings-item-left">
-              <div class="settings-item-icon" style="background:transparent">☁</div>
-              <span class="settings-item-label">备份与恢复</span>
-            </div>
-            <div class="settings-item-right"><span>›</span></div>
-          </div>
-          <div class="settings-item" onclick="alert('导出专注数据')">
+          <div class="settings-item" onclick="exportData()">
             <div class="settings-item-left">
               <div class="settings-item-icon" style="background:transparent">↗</div>
               <span class="settings-item-label">导出数据</span>
             </div>
             <div class="settings-item-right">
-              <span class="settings-item-value">Excel</span>
+              <span class="settings-item-value">JSON</span>
               <span>›</span>
             </div>
+          </div>
+          <div class="settings-item" onclick="clearAllData()">
+            <div class="settings-item-left">
+              <div class="settings-item-icon" style="background:transparent;color:#ff3b30">✕</div>
+              <span class="settings-item-label" style="color:#ff3b30">清除所有数据</span>
+            </div>
+            <div class="settings-item-right"><span>›</span></div>
           </div>
         </div>
       </div>
@@ -1268,12 +1206,12 @@ body {
       <div class="settings-group">
         <div class="settings-group-title">专注模式</div>
         <div class="settings-card">
-          <div class="settings-item">
+          <div class="settings-item" onclick="toggleSetting('focusMode')">
             <div class="settings-item-left">
               <div class="settings-item-icon" style="background:transparent">◈</div>
               <span class="settings-item-label">专注模式</span>
             </div>
-            <div class="toggle" onclick="this.classList.toggle('on')"></div>
+            <div class="toggle" id="toggleFocusMode"></div>
           </div>
         </div>
       </div>
@@ -1329,6 +1267,18 @@ body {
       <div id="taskPickerList" style="max-height:360px;overflow-y:auto"></div>
       <div class="modal-actions" style="margin-top:12px">
         <button class="btn btn-ghost" onclick="closeTaskPicker()">取消</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Option Picker Sheet -->
+  <div class="modal-overlay" id="optionPickerSheet" onclick="if(event.target===this)closeOptionPicker()">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-title" id="optionPickerTitle">选择</div>
+      <div id="optionPickerList" style="max-height:360px;overflow-y:auto"></div>
+      <div class="modal-actions" style="margin-top:12px">
+        <button class="btn btn-ghost" onclick="closeOptionPicker()">取消</button>
       </div>
     </div>
   </div>
@@ -1810,7 +1760,7 @@ function toggleTimer() {
         timerRunning = false;
         btn.textContent = '开始';
         onTimerComplete();
-        nextSession();
+        nextSession(true);
         updateTimerDisplay();
       }
     }, 1000);
@@ -1847,9 +1797,16 @@ function resetTimer() {
   updateTimerDisplay();
 }
 
-function nextSession() {
+function nextSession(isAuto) {
   if (currentSession === 'work') {
-    currentSession = (completedSessions > 0 && completedSessions % 4 === 0) ? 'longBreak' : 'shortBreak';
+    // Auto-complete: every 4th session gets a long break. Manual: short → long → work cycle.
+    if (isAuto && completedSessions > 0 && completedSessions % 4 === 0) {
+      currentSession = 'longBreak';
+    } else {
+      currentSession = 'shortBreak';
+    }
+  } else if (currentSession === 'shortBreak') {
+    currentSession = isAuto ? 'work' : 'longBreak';
   } else {
     currentSession = 'work';
     syncWorkDuration();
@@ -1860,14 +1817,14 @@ function nextSession() {
 function switchSession() {
   if (timerRunning && !confirm('切换时段将重置当前计时，是否继续？')) return;
   resetTimer();
-  nextSession();
+  nextSession(false);
   updateTimerDisplay();
 }
 
 function skipSession() {
   if (timerRunning && !confirm('确定跳过当前时段吗？')) return;
   resetTimer();
-  nextSession();
+  nextSession(false);
   updateTimerDisplay();
 }
 
@@ -1910,16 +1867,84 @@ onTimerComplete = function() {
 function updateStatsPage() {
   const totalTomatoes = tasks.reduce((s, t) => s + t.completedTomatoes, 0);
   const totalMinutes = tasks.reduce((s, t) => s + t.completedTomatoes * (t.durationMinutes || 25), 0);
+
+  // Highlight cards
+  const daysSinceFirst = Math.max(1, Math.ceil((Date.now() - getFirstDataDate()) / 86400000));
   document.getElementById('statsHighlightCards').innerHTML = `
     <div class="stats-highlight-card"><div class="hl-icon">◉</div><div class="hl-num" style="color:var(--accent)">${totalTomatoes}</div><div class="hl-label">总番茄数</div></div>
     <div class="stats-highlight-card"><div class="hl-icon">◷</div><div class="hl-num">${(totalMinutes/60).toFixed(1)}h</div><div class="hl-label">总专注时长</div></div>
-    <div class="stats-highlight-card"><div class="hl-icon">◫</div><div class="hl-num">${(totalMinutes/60/7).toFixed(1)}h</div><div class="hl-label">日均专注</div></div>
+    <div class="stats-highlight-card"><div class="hl-icon">◫</div><div class="hl-num">${(totalMinutes/60/daysSinceFirst).toFixed(1)}h</div><div class="hl-label">日均专注</div></div>
   `;
+
+  // Insight
+  const weekData = getWeekData();
+  const thisWeekMin = weekData.slice(0, 7).reduce((s, d) => s + d.minutes, 0);
+  const lastWeekMin = weekData.slice(7, 14).reduce((s, d) => s + d.minutes, 0);
+  const thisWeekAvg = (thisWeekMin / 60 / 7).toFixed(1);
+  const change = lastWeekMin > 0 ? Math.round((thisWeekMin - lastWeekMin) / lastWeekMin * 100) : 0;
+  const changeText = change >= 0 ? `较上周提升${change}%` : `较上周下降${Math.abs(change)}%`;
+  document.getElementById('statsInsight').innerHTML = `
+    <span style="font-size:18px">✦</span>
+    本周平均每日专注${thisWeekAvg}小时，${changeText}
+  `;
+
+  // Weekly chart
+  const dayLabels = ['一','二','三','四','五','六','日'];
+  const today = new Date();
+  const chartDays = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const key = d.toDateString();
+    const entry = weekData.find(w => w.date === key);
+    chartDays.push({ label: dayLabels[d.getDay() === 0 ? 6 : d.getDay() - 1], minutes: entry ? entry.minutes : 0 });
+  }
+  const maxMin = Math.max(1, ...chartDays.map(d => d.minutes));
+  document.getElementById('statsWeeklyChart').innerHTML = chartDays.map(d => {
+    const h = Math.max(4, (d.minutes / maxMin) * 100);
+    const isToday = d.label === dayLabels[(today.getDay() === 0 ? 6 : today.getDay() - 1)];
+    return `<div class="chart-bar-group">
+      <div class="chart-bar" style="height:${h}%;${isToday ? 'opacity:1' : ''}"></div>
+      <span class="chart-bar-label">${d.label}</span>
+    </div>`;
+  }).join('');
+
+  // Task distribution
+  const tasksWithTomatoes = tasks.filter(t => t.completedTomatoes > 0).sort((a, b) => b.completedTomatoes - a.completedTomatoes);
+  const maxTomatoes = Math.max(1, ...tasksWithTomatoes.map(t => t.completedTomatoes));
+  if (tasksWithTomatoes.length) {
+    document.getElementById('statsTaskDist').innerHTML = tasksWithTomatoes.map(t => {
+      const pct = Math.round(t.completedTomatoes / maxTomatoes * 100);
+      return `<div style="display:flex;align-items:center;gap:12px">
+        <span style="font-size:14px;width:64px;flex-shrink:0;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(t.name)}</span>
+        <div style="flex:1;height:6px;background:var(--card-border);border-radius:3px;overflow:hidden">
+          <div style="height:100%;width:${pct}%;background:var(--accent);border-radius:3px"></div>
+        </div>
+        <span style="font-size:14px;color:var(--text-secondary);width:28px;text-align:right">${t.completedTomatoes}</span>
+      </div>`;
+    }).join('');
+  } else {
+    document.getElementById('statsTaskDist').innerHTML = `<div style="text-align:center;color:var(--text-muted);font-size:14px;padding:20px 0">完成番茄后这里会显示分布</div>`;
+  }
+}
+
+function getWeekData() {
+  const stored = {};
+  try { stored = JSON.parse(localStorage.getItem('tomato_daily') || '{}'); } catch(e) {}
+  return Object.entries(stored).map(([date, val]) => ({ date, minutes: val.minutes || 0 })).sort((a, b) => b.date.localeCompare(a.date));
+}
+
+function getFirstDataDate() {
+  const stored = {};
+  try { stored = JSON.parse(localStorage.getItem('tomato_daily') || '{}'); } catch(e) {}
+  const dates = Object.keys(stored).sort();
+  return dates.length ? new Date(dates[0]).getTime() : Date.now();
 }
 
 function switchStatsPeriod(btn) {
   document.querySelectorAll('.period-option').forEach(o => o.classList.remove('active'));
   btn.classList.add('active');
+  updateStatsPage();
 }
 
 // ===== Theme =====
@@ -1930,9 +1955,247 @@ function toggleTheme() {
   html.setAttribute('data-theme', next);
   const labelEl = document.getElementById('themeLabel');
   if (labelEl) labelEl.textContent = next === 'dark' ? '深色' : '浅色';
+  settings.theme = next;
+  saveSettings();
+}
+
+// ===== Settings =====
+let settings = {
+  workDuration: 25,
+  shortBreak: 5,
+  longBreak: 15,
+  autoSwitch: true,
+  soundEnabled: true,
+  ringtone: 'default',
+  fontSize: 'medium',
+  focusMode: false
+};
+let optionPickerTarget = null;
+
+const DURATION_OPTIONS = [10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60];
+const BREAK_OPTIONS = [3, 5, 10];
+const LONG_BREAK_OPTIONS = [10, 15, 20, 25, 30];
+const RINGTONE_OPTIONS = ['默认铃声', '经典铃声', '电子提示音', '钟声', '柔和风铃'];
+const FONT_SIZE_OPTIONS = [
+  { value: 'small', label: '小' },
+  { value: 'medium', label: '标准' },
+  { value: 'large', label: '大' }
+];
+
+function loadSettings() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('tomato_settings') || '{}');
+    settings = { ...settings, ...saved };
+  } catch(e) {}
+  applyAllSettings();
+}
+
+function saveSettings() {
+  localStorage.setItem('tomato_settings', JSON.stringify(settings));
+}
+
+function applyAllSettings() {
+  sessionDurations.work = settings.workDuration * 60;
+  sessionDurations.shortBreak = settings.shortBreak * 60;
+  sessionDurations.longBreak = settings.longBreak * 60;
+  if (currentSession === 'work') currentTime = sessionDurations.work;
+  else if (currentSession === 'shortBreak') currentTime = sessionDurations.shortBreak;
+  else currentTime = sessionDurations.longBreak;
+
+  document.getElementById('setWorkDuration').textContent = settings.workDuration + '分钟';
+  document.getElementById('setShortBreak').textContent = settings.shortBreak + '分钟';
+  document.getElementById('setLongBreak').textContent = settings.longBreak + '分钟';
+
+  const autoToggle = document.getElementById('toggleAutoSwitch');
+  if (autoToggle) autoToggle.classList.toggle('on', settings.autoSwitch);
+
+  const soundToggle = document.getElementById('toggleSound');
+  if (soundToggle) soundToggle.classList.toggle('on', settings.soundEnabled);
+
+  document.getElementById('setRingtone').textContent =
+    settings.ringtone === 'default' ? '默认铃声' :
+    settings.ringtone === 'classic' ? '经典铃声' :
+    settings.ringtone === 'digital' ? '电子提示音' :
+    settings.ringtone === 'bell' ? '钟声' : '柔和风铃';
+
+  document.getElementById('setFontSize').textContent =
+    FONT_SIZE_OPTIONS.find(f => f.value === settings.fontSize)?.label || '标准';
+  applyFontSize(settings.fontSize);
+
+  const focusToggle = document.getElementById('toggleFocusMode');
+  if (focusToggle) focusToggle.classList.toggle('on', settings.focusMode);
+
+  updateTimerDisplay();
+}
+
+function applyFontSize(size) {
+  const sizes = { small: '15px', medium: '17px', large: '19px' };
+  document.body.style.fontSize = sizes[size] || '17px';
+  // Also scale key UI elements that need proportional adjustment
+  const phone = document.querySelector('.phone');
+  if (phone) {
+    phone.style.setProperty('--font-scale', size === 'small' ? '0.88' : size === 'large' ? '1.12' : '1');
+  }
+}
+
+function openOptionPicker(target) {
+  optionPickerTarget = target;
+  let options = [];
+  let title = '';
+  let currentValue = '';
+
+  switch (target) {
+    case 'workDuration':
+      title = '工作时长';
+      options = DURATION_OPTIONS;
+      currentValue = settings.workDuration + '分钟';
+      break;
+    case 'shortBreak':
+      title = '短休息时长';
+      options = BREAK_OPTIONS;
+      currentValue = settings.shortBreak + '分钟';
+      break;
+    case 'longBreak':
+      title = '长休息时长';
+      options = LONG_BREAK_OPTIONS;
+      currentValue = settings.longBreak + '分钟';
+      break;
+    case 'ringtone':
+      title = '铃声选择';
+      options = RINGTONE_OPTIONS;
+      currentValue = settings.ringtone === 'default' ? '默认铃声' :
+        settings.ringtone === 'classic' ? '经典铃声' :
+        settings.ringtone === 'digital' ? '电子提示音' :
+        settings.ringtone === 'bell' ? '钟声' : '柔和风铃';
+      break;
+    case 'fontSize':
+      title = '字体大小';
+      options = FONT_SIZE_OPTIONS;
+      currentValue = FONT_SIZE_OPTIONS.find(f => f.value === settings.fontSize)?.label || '标准';
+      break;
+  }
+
+  document.getElementById('optionPickerTitle').textContent = title;
+  document.getElementById('optionPickerList').innerHTML = options.map(opt => {
+    let val, label, isSelected;
+    if (typeof opt === 'object') {
+      val = opt.value; label = opt.label;
+      isSelected = settings.fontSize === val;
+    } else if (typeof opt === 'number') {
+      val = opt; label = opt + '分钟';
+      isSelected = (target === 'workDuration' && settings.workDuration === opt) ||
+                   (target === 'shortBreak' && settings.shortBreak === opt) ||
+                   (target === 'longBreak' && settings.longBreak === opt);
+    } else {
+      val = opt; label = opt;
+      const ringMap = { '默认铃声': 'default', '经典铃声': 'classic', '电子提示音': 'digital', '钟声': 'bell', '柔和风铃': 'chime' };
+      isSelected = settings.ringtone === (ringMap[opt] || 'default');
+    }
+    return `<div class="picker-item${isSelected ? ' bound' : ''}" onclick="selectOption('${val}')">
+      <div class="picker-item-dot${isSelected ? ' bound' : ''}"></div>
+      <div class="picker-item-info">
+        <div class="picker-item-name">${label}</div>
+      </div>
+      <span class="picker-item-check">✓</span>
+    </div>`;
+  }).join('');
+
+  document.getElementById('optionPickerSheet').classList.add('show');
+}
+
+function selectOption(value) {
+  if (!optionPickerTarget) return;
+  switch (optionPickerTarget) {
+    case 'workDuration':
+      settings.workDuration = parseInt(value);
+      sessionDurations.work = settings.workDuration * 60;
+      if (currentSession === 'work') { resetTimer(); }
+      break;
+    case 'shortBreak':
+      settings.shortBreak = parseInt(value);
+      sessionDurations.shortBreak = settings.shortBreak * 60;
+      if (currentSession === 'shortBreak') { resetTimer(); }
+      break;
+    case 'longBreak':
+      settings.longBreak = parseInt(value);
+      sessionDurations.longBreak = settings.longBreak * 60;
+      if (currentSession === 'longBreak') { resetTimer(); }
+      break;
+    case 'ringtone':
+      const ringMap = { '默认铃声': 'default', '经典铃声': 'classic', '电子提示音': 'digital', '钟声': 'bell', '柔和风铃': 'chime' };
+      settings.ringtone = ringMap[value] || 'default';
+      break;
+    case 'fontSize':
+      settings.fontSize = value;
+      applyFontSize(value);
+      break;
+  }
+  saveSettings();
+  applyAllSettings();
+  closeOptionPicker();
+}
+
+function closeOptionPicker() {
+  document.getElementById('optionPickerSheet').classList.remove('show');
+  optionPickerTarget = null;
+}
+
+function toggleSetting(key) {
+  settings[key] = !settings[key];
+  saveSettings();
+  applyAllSettings();
+}
+
+function toggleAutoSwitch() {
+  settings.autoSwitch = !settings.autoSwitch;
+  saveSettings();
+  applyAllSettings();
+}
+
+function exportData() {
+  const data = {
+    tasks: tasks,
+    dailyStats: {},
+    settings: settings,
+    completedSessions: completedSessions,
+    exportedAt: new Date().toISOString()
+  };
+  try { data.dailyStats = JSON.parse(localStorage.getItem('tomato_daily') || '{}'); } catch(e) {}
+
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'tomato-backup-' + new Date().toISOString().slice(0, 10) + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function clearAllData() {
+  if (!confirm('确定要清除所有数据吗？此操作不可撤销。\n\n将清除：任务列表、专注记录、所有设置')) return;
+  localStorage.clear();
+  tasks = [];
+  boundTaskId = null;
+  completedSessions = 0;
+  currentSession = 'work';
+  timerRunning = false;
+  clearInterval(timerInterval);
+  settings = {
+    workDuration: 25, shortBreak: 5, longBreak: 15,
+    autoSwitch: true, soundEnabled: true, ringtone: 'default',
+    fontSize: 'medium', focusMode: false
+  };
+  saveSettings();
+  saveTasks();
+  applyAllSettings();
+  renderTasks();
+  updateHomeStats();
+  updateStatsPage();
+  document.getElementById('btnPlay').textContent = '开始';
 }
 
 // ===== Init =====
+loadSettings();
 loadTasks();
 syncWorkDuration();
 currentTime = sessionDurations.work;
