@@ -1,0 +1,1943 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>番茄钟 - UI 原型设计</title>
+<style>
+/* ================================================================
+   Apple Design Language — Design Tokens
+   ================================================================ */
+
+/* ----- Light Theme (default) ----- */
+:root {
+  /* Brand */
+  --blue:            #0066cc;
+  --blue-focus:      #0071e3;
+  --blue-on-dark:    #2997ff;
+
+  /* Surface */
+  --canvas:          #ffffff;
+  --canvas-parchment:#f5f5f7;
+  --surface-pearl:   #fafafc;
+  --surface-tile-1:  #272729;
+  --surface-tile-2:  #2a2a2c;
+  --surface-tile-3:  #252527;
+  --surface-black:   #000000;
+
+  /* Text */
+  --ink:             #1d1d1f;
+  --ink-muted-80:    #333333;
+  --ink-muted-48:    #7a7a7a;
+
+  /* Borders */
+  --divider-soft:    rgba(0,0,0,0.04);
+  --hairline:        #e0e0e0;
+
+  /* Semantic aliases */
+  --bg:              var(--canvas-parchment);
+  --card-bg:         var(--canvas);
+  --card-border:     var(--hairline);
+  --text:            var(--ink);
+  --text-secondary:  var(--ink-muted-48);
+  --text-muted:      var(--ink-muted-48);
+  --accent:          var(--blue);
+  --accent-hover:    var(--blue-focus);
+
+  /* Spacing */
+  --space-xxs: 4px;
+  --space-xs:  8px;
+  --space-sm:  12px;
+  --space-md:  17px;
+  --space-lg:  24px;
+  --space-xl:  32px;
+  --space-xxl: 48px;
+
+  /* Radius */
+  --radius-none: 0px;
+  --radius-xs:   5px;
+  --radius-sm:   8px;
+  --radius-md:   11px;
+  --radius-lg:   18px;
+  --radius-pill: 9999px;
+  --radius-full: 9999px;
+
+  /* Typography */
+  --font-display: "SF Pro Display", system-ui, -apple-system, BlinkMacSystemFont, "Inter", sans-serif;
+  --font-text:    "SF Pro Text", system-ui, -apple-system, BlinkMacSystemFont, "Inter", sans-serif;
+  --font-mono:    "SF Mono", "JetBrains Mono", "Consolas", monospace;
+
+  /* Transitions */
+  --ease: cubic-bezier(0.25, 0.1, 0.25, 1);
+  --ease-spring: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ----- Dark Theme ----- */
+[data-theme="dark"] {
+  --bg:              var(--surface-black);
+  --card-bg:         var(--surface-tile-1);
+  --card-border:     rgba(255,255,255,0.08);
+  --text:            #ffffff;
+  --text-secondary:  #98989d;
+  --text-muted:      #6e6e73;
+  --accent:          var(--blue-on-dark);
+  --accent-hover:    #40a8ff;
+  --hairline:        rgba(255,255,255,0.08);
+  --divider-soft:    rgba(255,255,255,0.04);
+}
+
+/* ================================================================
+   Reset & Base
+   ================================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; }
+body {
+  font-family: var(--font-text);
+  font-size: 17px;
+  font-weight: 400;
+  line-height: 1.47;
+  letter-spacing: -0.374px;
+  background: #000;
+  color: var(--text);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ================================================================
+   Phone Frame
+   ================================================================ */
+.phone {
+  width: 390px;
+  height: 844px;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  transition: background 0.3s var(--ease);
+}
+@media (max-width: 420px) {
+  .phone { width: 100vw; height: 100vh; }
+}
+
+/* ================================================================
+   Status Bar
+   ================================================================ */
+.status-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 28px 6px;
+  font-family: var(--font-text);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: -0.12px;
+  color: var(--text);
+  flex-shrink: 0;
+}
+.status-icons { display: flex; gap: 5px; align-items: center; font-size: 11px; }
+
+/* ================================================================
+   Header
+   ================================================================ */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px var(--space-lg) var(--space-sm);
+  flex-shrink: 0;
+}
+.header h1 {
+  font-family: var(--font-display);
+  font-size: 34px;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.374px;
+}
+.header-btn {
+  width: 36px; height: 36px;
+  border-radius: var(--radius-full);
+  border: none;
+  background: var(--card-bg);
+  color: var(--text-secondary);
+  font-size: 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s var(--ease);
+}
+.header-btn:active { transform: scale(0.94); }
+
+/* ================================================================
+   Page Container
+   ================================================================ */
+.page-container { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 0 var(--space-lg); scroll-behavior: smooth; }
+.page { display: none; animation: fadeIn 0.25s var(--ease); }
+.page.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ================================================================
+   Tab Bar — Apple-style, frosted
+   ================================================================ */
+.tab-bar {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 6px var(--space-sm) 22px;
+  background: var(--card-bg);
+  border-top: 0.5px solid var(--card-border);
+  flex-shrink: 0;
+  transition: background 0.3s var(--ease);
+}
+.tab-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 4px 12px;
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 500;
+  font-family: var(--font-text);
+  letter-spacing: -0.08px;
+  transition: color 0.2s var(--ease);
+  min-width: 44px; min-height: 44px;
+  justify-content: center;
+}
+.tab-item .tab-icon { font-size: 22px; transition: transform 0.2s var(--ease-spring); }
+.tab-item.active { color: var(--accent); }
+.tab-item.active .tab-icon { transform: scale(1.06); }
+
+/* ================================================================
+   Home Page - Timer
+   ================================================================ */
+.timer-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xl);
+  padding-top: var(--space-xs);
+}
+
+/* Timer Ring — SVG-based, clean */
+.timer-ring-wrap {
+  position: relative;
+  width: 248px;
+  height: 248px;
+  margin-top: 4px;
+}
+.timer-ring-wrap svg {
+  width: 100%; height: 100%;
+  transform: rotate(-90deg);
+}
+.timer-ring-bg {
+  fill: none;
+  stroke: var(--card-border);
+  stroke-width: 6;
+}
+.timer-ring-fg {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 6;
+  stroke-linecap: round;
+  transition: stroke-dasharray 0.5s linear;
+}
+.timer-inner {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.timer-time {
+  font-family: var(--font-display);
+  font-size: 48px;
+  font-weight: 600;
+  letter-spacing: -0.28px;
+  line-height: 1.07;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  transition: color 0.3s var(--ease);
+}
+.timer-label {
+  font-family: var(--font-text);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.224px;
+  color: var(--accent);
+  padding: 3px 14px;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  transition: all 0.3s var(--ease);
+}
+.timer-session-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  display: inline-block;
+  margin-right: 5px;
+  vertical-align: middle;
+}
+.timer-session-dot.running { animation: breathe 1.6s ease-in-out infinite; }
+@keyframes breathe { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+
+/* Timer Controls — pill grammar */
+.timer-controls {
+  display: flex;
+  gap: var(--space-sm);
+  align-items: center;
+}
+.btn-icon-circle {
+  width: 44px; height: 44px;
+  border-radius: var(--radius-full);
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--card-bg);
+  color: var(--text-secondary);
+  transition: all 0.15s var(--ease);
+}
+.btn-icon-circle:active { transform: scale(0.94); background: var(--bg); }
+.btn-play {
+  padding: 12px 32px;
+  border-radius: var(--radius-pill);
+  border: none;
+  font-family: var(--font-text);
+  font-size: 17px;
+  font-weight: 400;
+  letter-spacing: -0.374px;
+  cursor: pointer;
+  background: var(--accent);
+  color: #fff;
+  transition: all 0.15s var(--ease);
+  min-width: 100px;
+}
+.btn-play:active { transform: scale(0.95); }
+
+/* Task Binding Card */
+.task-bind-card {
+  width: 100%;
+  background: var(--card-bg);
+  border-radius: var(--radius-lg);
+  border: 0.5px solid var(--card-border);
+  padding: var(--space-md) 18px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  cursor: pointer;
+  transition: transform 0.15s var(--ease);
+}
+.task-bind-card:active { transform: scale(0.985); }
+.task-bind-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
+}
+.task-bind-info { flex: 1; min-width: 0; }
+.task-bind-name {
+  font-family: var(--font-text);
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.374px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.task-bind-meta {
+  font-family: var(--font-text);
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: -0.224px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+.task-bind-arrow { color: var(--text-muted); font-size: 17px; font-weight: 300; }
+
+/* Today Stats */
+.stats-row { display: flex; gap: var(--space-sm); width: 100%; }
+.stat-card {
+  flex: 1;
+  background: var(--card-bg);
+  border-radius: var(--radius-lg);
+  border: 0.5px solid var(--card-border);
+  padding: var(--space-md) var(--space-sm);
+  text-align: center;
+  transition: background 0.3s var(--ease);
+}
+.stat-card .stat-num {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 1.14;
+  letter-spacing: 0.196px;
+  color: var(--text);
+}
+.stat-card .stat-label {
+  font-family: var(--font-text);
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: -0.12px;
+  color: var(--text-secondary);
+  margin-top: var(--space-xxs);
+}
+
+/* ================================================================
+   Task Page
+   ================================================================ */
+
+/* Filter Chips */
+.task-filter-bar {
+  display: flex;
+  gap: var(--space-xs);
+  overflow-x: auto;
+  padding-bottom: var(--space-xxs);
+  margin-bottom: var(--space-xxs);
+  -webkit-overflow-scrolling: touch;
+}
+.task-filter-bar::-webkit-scrollbar { display: none; }
+.filter-chip {
+  padding: 8px 16px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--card-border);
+  background: var(--card-bg);
+  color: var(--text);
+  font-family: var(--font-text);
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: -0.224px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.2s var(--ease);
+  flex-shrink: 0;
+}
+.filter-chip.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.filter-chip:active { transform: scale(0.95); }
+
+/* Section Labels */
+.task-section-label {
+  font-family: var(--font-text);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: -0.12px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin: var(--space-lg) 0 var(--space-xs);
+  padding-left: 4px;
+}
+
+/* Swipe Row */
+.task-row { position: relative; margin-bottom: var(--space-xs); overflow: hidden; border-radius: var(--radius-lg); }
+.task-swipe-bg {
+  position: absolute; inset: 0;
+  display: flex; align-items: center;
+  border-radius: var(--radius-lg);
+}
+.task-swipe-bg .swipe-action {
+  width: 72px; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-text);
+  font-size: 14px; font-weight: 600;
+  color: #fff;
+  position: absolute;
+}
+.swipe-action.action-done { left: 0; background: #34c759; border-radius: var(--radius-lg) 0 0 var(--radius-lg); }
+.swipe-action.action-delete { right: 0; background: #ff3b30; border-radius: 0 var(--radius-lg) var(--radius-lg) 0; }
+
+/* Task Card */
+.task-card {
+  background: var(--card-bg);
+  border-radius: var(--radius-lg);
+  border: 0.5px solid var(--card-border);
+  padding: var(--space-md) 18px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  cursor: pointer;
+  position: relative;
+  z-index: 1;
+  transition: transform 0.2s var(--ease-spring);
+  touch-action: pan-y;
+}
+.task-card.swiped-left { transform: translateX(-72px); }
+.task-card.swiped-right { transform: translateX(72px); }
+
+.task-priority-bar {
+  width: 3px; height: 40px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+.task-priority-bar.high { background: #ff3b30; }
+.task-priority-bar.medium { background: #ff9f0a; }
+.task-priority-bar.low { background: #34c759; }
+
+.task-content { flex: 1; min-width: 0; }
+.task-name {
+  font-family: var(--font-text);
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.374px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  color: var(--text);
+}
+.task-desc {
+  font-family: var(--font-text);
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: -0.224px;
+  color: var(--text-secondary);
+  margin-top: 1px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.task-meta-row { display: flex; align-items: center; gap: var(--space-xs); margin-top: 4px; }
+
+.task-tomato-count {
+  font-family: var(--font-text);
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: -0.12px;
+  color: var(--text-muted);
+}
+.task-category-tag {
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-text);
+  font-size: 11px;
+  font-weight: 500;
+}
+.task-status-badge {
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-text);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: -0.12px;
+  flex-shrink: 0;
+}
+
+/* ================================================================
+   Empty State
+   ================================================================ */
+.empty-state {
+  text-align: center;
+  padding: var(--space-xxl) var(--space-lg);
+  color: var(--text-muted);
+}
+.empty-state .empty-icon { font-size: 44px; margin-bottom: var(--space-md); opacity: 0.6; }
+.empty-state .empty-text {
+  font-family: var(--font-text);
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.374px;
+  margin-bottom: var(--space-xxs);
+  color: var(--text-secondary);
+}
+.empty-state .empty-hint {
+  font-family: var(--font-text);
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: -0.224px;
+}
+
+/* ================================================================
+   FAB
+   ================================================================ */
+.fab {
+  position: absolute;
+  bottom: 100px;
+  right: 24px;
+  width: 52px; height: 52px;
+  border-radius: var(--radius-full);
+  background: var(--accent);
+  color: #fff;
+  font-size: 27px;
+  font-weight: 300;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s var(--ease);
+  z-index: 10;
+}
+.fab:active { transform: scale(0.9); }
+
+/* ================================================================
+   Stats Page
+   ================================================================ */
+.stats-period-selector {
+  display: flex;
+  background: var(--card-bg);
+  border-radius: var(--radius-pill);
+  border: 0.5px solid var(--card-border);
+  padding: 3px;
+  margin-bottom: var(--space-lg);
+}
+.period-option {
+  flex: 1;
+  padding: 7px 0;
+  border: none;
+  background: none;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-text);
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: -0.224px;
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.2s var(--ease);
+}
+.period-option.active { background: var(--accent); color: #fff; }
+
+.stats-highlight-cards { display: flex; gap: var(--space-sm); margin-bottom: var(--space-lg); }
+.stats-highlight-card {
+  flex: 1;
+  background: var(--card-bg);
+  border-radius: var(--radius-lg);
+  border: 0.5px solid var(--card-border);
+  padding: var(--space-lg) var(--space-sm);
+  text-align: center;
+  transition: background 0.3s var(--ease);
+}
+.stats-highlight-card .hl-icon { font-size: 22px; margin-bottom: var(--space-xs); }
+.stats-highlight-card .hl-num {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 1.14;
+  letter-spacing: 0.196px;
+}
+.stats-highlight-card .hl-label {
+  font-family: var(--font-text);
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: -0.12px;
+  color: var(--text-secondary);
+  margin-top: var(--space-xxs);
+}
+
+.chart-card {
+  background: var(--card-bg);
+  border-radius: var(--radius-lg);
+  border: 0.5px solid var(--card-border);
+  padding: var(--space-lg);
+  margin-bottom: var(--space-md);
+  transition: background 0.3s var(--ease);
+}
+.chart-title {
+  font-family: var(--font-text);
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.374px;
+  margin-bottom: var(--space-md);
+}
+.chart-area {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-xs);
+  height: 140px;
+  padding-top: var(--space-xs);
+}
+.chart-bar-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  height: 100%;
+  justify-content: flex-end;
+}
+.chart-bar {
+  width: 100%;
+  max-width: 32px;
+  border-radius: 6px 6px 2px 2px;
+  background: var(--accent);
+  transition: height 0.4s var(--ease);
+  min-height: 4px;
+  cursor: pointer;
+}
+.chart-bar-label {
+  font-family: var(--font-text);
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: -0.08px;
+  color: var(--text-muted);
+}
+
+/* Insight */
+.insight-card {
+  background: var(--card-bg);
+  border-radius: var(--radius-lg);
+  border: 0.5px solid var(--card-border);
+  padding: var(--space-md) var(--space-lg);
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+  font-family: var(--font-text);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -0.224px;
+  color: var(--text);
+  transition: background 0.3s var(--ease);
+}
+
+/* ================================================================
+   Settings Page
+   ================================================================ */
+.settings-group { margin-bottom: var(--space-lg); }
+.settings-group-title {
+  font-family: var(--font-text);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: -0.12px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin-bottom: var(--space-xs);
+  padding-left: 4px;
+}
+.settings-card {
+  background: var(--card-bg);
+  border-radius: var(--radius-lg);
+  border: 0.5px solid var(--card-border);
+  overflow: hidden;
+  transition: background 0.3s var(--ease);
+}
+.settings-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 15px 18px;
+  cursor: pointer;
+  transition: background 0.15s var(--ease);
+  border-bottom: 0.5px solid var(--card-border);
+  min-height: 44px;
+}
+.settings-item:last-child { border-bottom: none; }
+.settings-item:active { background: var(--bg); }
+.settings-item-left { display: flex; align-items: center; gap: var(--space-sm); }
+.settings-item-icon {
+  width: 28px; height: 28px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+}
+.settings-item-label {
+  font-family: var(--font-text);
+  font-size: 17px;
+  font-weight: 400;
+  letter-spacing: -0.374px;
+}
+.settings-item-value {
+  font-family: var(--font-text);
+  font-size: 17px;
+  font-weight: 400;
+  letter-spacing: -0.374px;
+  color: var(--text-secondary);
+  margin-right: 6px;
+}
+.settings-item-right { display: flex; align-items: center; gap: 6px; color: var(--text-muted); }
+
+/* Toggle */
+.toggle {
+  width: 49px; height: 29px;
+  border-radius: var(--radius-pill);
+  background: var(--hairline);
+  position: relative;
+  cursor: pointer;
+  transition: background 0.25s var(--ease);
+  flex-shrink: 0;
+}
+.toggle.on { background: #34c759; }
+.toggle::after {
+  content: '';
+  width: 25px; height: 25px;
+  border-radius: var(--radius-full);
+  background: #fff;
+  position: absolute;
+  top: 2px; left: 2px;
+  transition: transform 0.25s var(--ease-spring);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}
+.toggle.on::after { transform: translateX(20px); }
+
+/* ================================================================
+   Modal Sheet
+   ================================================================ */
+.modal-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 20;
+  display: none;
+  justify-content: center;
+  align-items: flex-end;
+}
+.modal-overlay.show { display: flex; }
+.modal-sheet {
+  width: 100%;
+  background: var(--card-bg);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  padding: var(--space-sm) var(--space-lg) 28px;
+  animation: slideUp 0.3s var(--ease-spring);
+  transition: background 0.3s var(--ease);
+}
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.modal-handle {
+  width: 32px; height: 4px;
+  border-radius: 2px;
+  background: var(--hairline);
+  margin: 0 auto var(--space-md);
+}
+.modal-title {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 1.19;
+  letter-spacing: 0.231px;
+  margin-bottom: var(--space-md);
+}
+.modal-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 0.5px solid var(--card-border);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-text);
+  font-size: 17px;
+  font-weight: 400;
+  letter-spacing: -0.374px;
+  background: var(--bg);
+  color: var(--text);
+  margin-bottom: var(--space-sm);
+  transition: border-color 0.2s var(--ease);
+}
+.modal-input:focus { outline: none; border-color: var(--accent); }
+.modal-select {
+  width: 100%;
+  padding: 12px 16px;
+  border: 0.5px solid var(--card-border);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-text);
+  font-size: 17px;
+  font-weight: 400;
+  letter-spacing: -0.374px;
+  background: var(--bg);
+  color: var(--text);
+  margin-bottom: var(--space-sm);
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  transition: border-color 0.2s var(--ease);
+}
+.modal-select:focus { outline: none; border-color: var(--accent); }
+
+.modal-actions { display: flex; gap: var(--space-sm); margin-top: var(--space-xs); }
+.btn {
+  flex: 1;
+  padding: 11px 22px;
+  border-radius: var(--radius-pill);
+  border: none;
+  font-family: var(--font-text);
+  font-size: 17px;
+  font-weight: 400;
+  letter-spacing: -0.374px;
+  cursor: pointer;
+  transition: transform 0.15s var(--ease);
+  min-height: 44px;
+}
+.btn:active { transform: scale(0.95); }
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-ghost { background: var(--bg); color: var(--accent); }
+
+/* ================================================================
+   Context Menu
+   ================================================================ */
+.context-menu {
+  position: fixed;
+  background: var(--card-bg);
+  border-radius: var(--radius-md);
+  border: 0.5px solid var(--card-border);
+  z-index: 25;
+  min-width: 140px;
+  overflow: hidden;
+  display: none;
+  transition: background 0.3s var(--ease);
+}
+.context-menu.show { display: block; animation: fadeIn 0.15s var(--ease); }
+.context-menu-item {
+  padding: 12px 18px;
+  font-family: var(--font-text);
+  font-size: 17px;
+  font-weight: 400;
+  letter-spacing: -0.374px;
+  cursor: pointer;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  border-bottom: 0.5px solid var(--card-border);
+  transition: background 0.15s var(--ease);
+}
+.context-menu-item:last-child { border-bottom: none; }
+.context-menu-item:active { background: var(--bg); }
+.context-menu-item.danger { color: #ff3b30; }
+
+/* ================================================================
+   Task Picker Sheet
+   ================================================================ */
+.picker-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: 14px 0;
+  border-bottom: 0.5px solid var(--card-border);
+  cursor: pointer;
+  transition: opacity 0.15s var(--ease);
+}
+.picker-item:active { opacity: 0.5; }
+.picker-item:last-child { border-bottom: none; }
+.picker-item-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
+}
+.picker-item-dot.bound {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.picker-item-info { flex: 1; min-width: 0; }
+.picker-item-name {
+  font-family: var(--font-text);
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.374px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.picker-item-meta {
+  font-family: var(--font-text);
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: -0.224px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+.picker-item-check {
+  font-size: 18px;
+  color: var(--accent);
+  flex-shrink: 0;
+  display: none;
+}
+.picker-item.bound .picker-item-check { display: block; }
+
+/* ================================================================
+   Toast
+   ================================================================ */
+.toast {
+  position: absolute;
+  bottom: 120px;
+  left: var(--space-lg);
+  right: var(--space-lg);
+  background: var(--ink);
+  color: #fff;
+  padding: 12px 18px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-text);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -0.224px;
+  text-align: center;
+  z-index: 30;
+  display: none;
+  animation: fadeIn 0.25s var(--ease);
+}
+.toast.show { display: block; }
+.toast .undo-link { color: var(--blue-on-dark); cursor: pointer; font-weight: 600; margin-left: var(--space-xs); }
+
+/* ================================================================
+   Scrollbar
+   ================================================================ */
+.page-container::-webkit-scrollbar { width: 0; }
+</style>
+</head>
+<body>
+
+<div class="phone" id="app">
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <span>9:41</span>
+    <span class="status-icons">●●●●○&nbsp;&nbsp;WiFi&nbsp;&nbsp;▷91%</span>
+  </div>
+
+  <!-- Header -->
+  <div class="header" id="pageHeader">
+    <h1>番茄钟</h1>
+    <button class="header-btn" onclick="toggleTheme()" title="切换主题">◐</button>
+  </div>
+
+  <!-- Pages -->
+  <div class="page-container" id="pageContainer">
+
+    <!-- ===== HOME PAGE ===== -->
+    <div class="page active" id="page-home">
+      <div class="timer-section">
+        <!-- Timer Ring -->
+        <div class="timer-ring-wrap" onclick="switchSession()">
+          <svg viewBox="0 0 248 248">
+            <circle class="timer-ring-bg" cx="124" cy="124" r="118"/>
+            <circle class="timer-ring-fg" id="timerRingFg" cx="124" cy="124" r="118"/>
+          </svg>
+          <div class="timer-inner">
+            <span class="timer-time" id="timerDisplay">25:00</span>
+            <span class="timer-label" id="timerLabel">
+              <span class="timer-session-dot"></span>工作中
+            </span>
+          </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="timer-controls">
+          <button class="btn-icon-circle" onclick="resetTimer()" title="重置">↺</button>
+          <button class="btn-play" id="btnPlay" onclick="toggleTimer()">开始</button>
+          <button class="btn-icon-circle" onclick="skipSession()" title="跳过">↷</button>
+        </div>
+
+        <!-- Bound Task -->
+        <div class="task-bind-card" onclick="showTaskPicker()">
+          <div class="task-bind-dot"></div>
+          <div class="task-bind-info">
+            <div class="task-bind-name" id="boundTaskName">未绑定任务</div>
+            <div class="task-bind-meta">点击选择要专注的任务</div>
+          </div>
+          <span class="task-bind-arrow">›</span>
+        </div>
+
+        <!-- Today Stats -->
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-num" id="todayTomatoes">3</div>
+            <div class="stat-label">今日番茄</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-num" id="todayFocus">1h 15m</div>
+            <div class="stat-label">专注时长</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-num" id="todayProgress">60%</div>
+            <div class="stat-label">目标进度</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== TASK PAGE ===== -->
+    <div class="page" id="page-tasks">
+      <div class="task-filter-bar" id="taskFilterBar">
+        <button class="filter-chip active" data-cat="all">全部</button>
+        <button class="filter-chip" data-cat="学习">学习</button>
+        <button class="filter-chip" data-cat="工作">工作</button>
+        <button class="filter-chip" data-cat="阅读">阅读</button>
+        <button class="filter-chip" data-cat="健身">健身</button>
+      </div>
+      <div id="taskList"></div>
+    </div>
+
+    <!-- ===== STATS PAGE ===== -->
+    <div class="page" id="page-stats">
+      <div class="stats-period-selector">
+        <button class="period-option active" onclick="switchStatsPeriod(this)">今日</button>
+        <button class="period-option" onclick="switchStatsPeriod(this)">本周</button>
+        <button class="period-option" onclick="switchStatsPeriod(this)">本月</button>
+        <button class="period-option" onclick="switchStatsPeriod(this)">自定义</button>
+      </div>
+
+      <div class="stats-highlight-cards" id="statsHighlightCards">
+        <div class="stats-highlight-card">
+          <div class="hl-icon">◉</div>
+          <div class="hl-num" style="color:var(--accent)">18</div>
+          <div class="hl-label">总番茄数</div>
+        </div>
+        <div class="stats-highlight-card">
+          <div class="hl-icon">◷</div>
+          <div class="hl-num">7.5h</div>
+          <div class="hl-label">总专注时长</div>
+        </div>
+        <div class="stats-highlight-card">
+          <div class="hl-icon">◫</div>
+          <div class="hl-num">2.5h</div>
+          <div class="hl-label">日均专注</div>
+        </div>
+      </div>
+
+      <div class="insight-card">
+        <span style="font-size:18px">✦</span>
+        本周平均每日专注2.5小时，较上周提升12%
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-title">本周专注趋势</div>
+        <div class="chart-area">
+          <div class="chart-bar-group"><div class="chart-bar" style="height:60%"></div><span class="chart-bar-label">一</span></div>
+          <div class="chart-bar-group"><div class="chart-bar" style="height:45%"></div><span class="chart-bar-label">二</span></div>
+          <div class="chart-bar-group"><div class="chart-bar" style="height:80%"></div><span class="chart-bar-label">三</span></div>
+          <div class="chart-bar-group"><div class="chart-bar" style="height:35%;background:var(--text-muted)"></div><span class="chart-bar-label">四</span></div>
+          <div class="chart-bar-group"><div class="chart-bar" style="height:70%"></div><span class="chart-bar-label">五</span></div>
+          <div class="chart-bar-group"><div class="chart-bar" style="height:25%"></div><span class="chart-bar-label">六</span></div>
+          <div class="chart-bar-group"><div class="chart-bar" style="height:10%"></div><span class="chart-bar-label">日</span></div>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-title">任务专注分布</div>
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div style="display:flex;align-items:center;gap:12px">
+            <span style="font-size:14px;width:64px;flex-shrink:0;font-weight:500">项目文档</span>
+            <div style="flex:1;height:6px;background:var(--card-border);border-radius:3px;overflow:hidden">
+              <div style="height:100%;width:40%;background:var(--accent);border-radius:3px"></div>
+            </div>
+            <span style="font-size:14px;color:var(--text-secondary);width:28px;text-align:right">8</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <span style="font-size:14px;width:64px;flex-shrink:0;font-weight:500">高数复习</span>
+            <div style="flex:1;height:6px;background:var(--card-border);border-radius:3px;overflow:hidden">
+              <div style="height:100%;width:25%;background:var(--accent);border-radius:3px;opacity:0.7"></div>
+            </div>
+            <span style="font-size:14px;color:var(--text-secondary);width:28px;text-align:right">5</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <span style="font-size:14px;width:64px;flex-shrink:0;font-weight:500">读书笔记</span>
+            <div style="flex:1;height:6px;background:var(--card-border);border-radius:3px;overflow:hidden">
+              <div style="height:100%;width:15%;background:var(--accent);border-radius:3px;opacity:0.5"></div>
+            </div>
+            <span style="font-size:14px;color:var(--text-secondary);width:28px;text-align:right">3</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== SETTINGS PAGE ===== -->
+    <div class="page" id="page-settings">
+      <div class="settings-group">
+        <div class="settings-group-title">计时设置</div>
+        <div class="settings-card">
+          <div class="settings-item" onclick="alert('调整工作时长: 10-60分钟')">
+            <div class="settings-item-left">
+              <div class="settings-item-icon" style="background:transparent">◉</div>
+              <span class="settings-item-label">工作时长</span>
+            </div>
+            <div class="settings-item-right">
+              <span class="settings-item-value">25分钟</span>
+              <span>›</span>
+            </div>
+          </div>
+          <div class="settings-item">
+            <div class="settings-item-left">
+              <div class="settings-item-icon" style="background:transparent">◷</div>
+              <span class="settings-item-label">短休息时长</span>
+            </div>
+            <div class="settings-item-right">
+              <span class="settings-item-value">5分钟</span>
+              <span>›</span>
+            </div>
+          </div>
+          <div class="settings-item">
+            <div class="settings-item-left">
+              <div class="settings-item-icon" style="background:transparent">◌</div>
+              <span class="settings-item-label">长休息时长</span>
+            </div>
+            <div class="settings-item-right">
+              <span class="settings-item-value">15分钟</span>
+              <span>›</span>
+            </div>
+          </div>
+          <div class="settings-item">
+            <div class="settings-item-left">
+              <div class="settings-item-icon" style="background:transparent">↻</div>
+              <span class="settings-item-label">自动切换时段</span>
+            </div>
+            <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-group">
+        <div class="settings-group-title">提醒设置</div>
+        <div class="settings-card">
+          <div class="settings-item">
+            <div class="settings-item-left">
+              <div class="settings-item-icon" style="background:transparent">♪</div>
+              <span class="settings-item-label">声音提醒</span>
+            </div>
+            <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div class="settings-item">
+            <div class="settings-item-left">
+              <div class="settings-item-icon" style="background:transparent">☷</div>
+              <span class="settings-item-label">震动提醒</span>
+            </div>
+            <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div class="settings-item">
+            <div class="settings-item-left">
+              <div class="settings-item-icon" style="background:transparent">♫</div>
+              <span class="settings-item-label">铃声选择</span>
+            </div>
+            <div class="settings-item-right">
+              <span class="settings-item-value">默认铃声</span>
+              <span>›</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-group">
+        <div class="settings-group-title">主题设置</div>
+        <div class="settings-card">
+          <div class="settings-item" onclick="toggleTheme()">
+            <div class="settings-item-left">
+              <div class="settings-item-icon" style="background:transparent">◐</div>
+              <span class="settings-item-label">主题模式</span>
+            </div>
+            <div class="settings-item-right">
+              <span class="settings-item-value" id="themeLabel">浅色</span>
+              <span>›</span>
+            </div>
+          </div>
+          <div class="settings-item">
+            <div class="settings-item-left">
+              <div class="settings-item-icon" style="background:transparent">A</div>
+              <span class="settings-item-label">字体大小</span>
+            </div>
+            <div class="settings-item-right">
+              <span class="settings-item-value">标准</span>
+              <span>›</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-group">
+        <div class="settings-group-title">账号与数据</div>
+        <div class="settings-card">
+          <div class="settings-item">
+            <div class="settings-item-left">
+              <div class="settings-item-icon" style="background:transparent">◎</div>
+              <span class="settings-item-label">账号登录</span>
+            </div>
+            <div class="settings-item-right">
+              <span class="settings-item-value">未登录</span>
+              <span>›</span>
+            </div>
+          </div>
+          <div class="settings-item">
+            <div class="settings-item-left">
+              <div class="settings-item-icon" style="background:transparent">☁</div>
+              <span class="settings-item-label">备份与恢复</span>
+            </div>
+            <div class="settings-item-right"><span>›</span></div>
+          </div>
+          <div class="settings-item" onclick="alert('导出专注数据')">
+            <div class="settings-item-left">
+              <div class="settings-item-icon" style="background:transparent">↗</div>
+              <span class="settings-item-label">导出数据</span>
+            </div>
+            <div class="settings-item-right">
+              <span class="settings-item-value">Excel</span>
+              <span>›</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-group">
+        <div class="settings-group-title">专注模式</div>
+        <div class="settings-card">
+          <div class="settings-item">
+            <div class="settings-item-left">
+              <div class="settings-item-icon" style="background:transparent">◈</div>
+              <span class="settings-item-label">专注模式</span>
+            </div>
+            <div class="toggle" onclick="this.classList.toggle('on')"></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="text-align:center;padding:var(--space-lg) 0 var(--space-xs);font-size:12px;color:var(--text-muted);letter-spacing:-0.12px">
+        番茄钟 · 简洁高效
+      </div>
+    </div>
+  </div>
+
+  <!-- FAB -->
+  <button class="fab" id="fabAddTask" style="display:none" onclick="openTaskModal()">+</button>
+
+  <!-- Context Menu -->
+  <div class="context-menu" id="contextMenu"></div>
+
+  <!-- Task Modal -->
+  <div class="modal-overlay" id="taskModal" onclick="if(event.target===this)closeTaskModal()">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-title" id="taskModalTitle">添加新任务</div>
+      <input class="modal-input" type="text" id="taskFormName" placeholder="任务名称">
+      <input class="modal-input" type="text" id="taskFormDesc" placeholder="任务描述（可选）">
+      <div style="display:flex;gap:10px;margin-bottom:10px">
+        <input class="modal-input" type="number" id="taskFormTomatoes" placeholder="番茄数" style="flex:1" min="1" value="2">
+        <input class="modal-input" type="number" id="taskFormDuration" placeholder="分钟/番茄" style="flex:1" min="5" max="120" value="25" step="5">
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:10px">
+        <select class="modal-select" id="taskFormPriority" style="flex:1">
+          <option value="high">高优先级</option>
+          <option value="medium" selected>中优先级</option>
+          <option value="low">低优先级</option>
+        </select>
+        <select class="modal-select" id="taskFormCategory" style="flex:1">
+          <option value="学习">学习</option>
+          <option value="工作">工作</option>
+          <option value="阅读">阅读</option>
+          <option value="健身">健身</option>
+        </select>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="closeTaskModal()">取消</button>
+        <button class="btn btn-primary" id="taskModalSubmit" onclick="submitTask()">添加</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Task Picker Sheet -->
+  <div class="modal-overlay" id="taskPickerSheet" onclick="if(event.target===this)closeTaskPicker()">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-title">选择任务</div>
+      <div id="taskPickerList" style="max-height:360px;overflow-y:auto"></div>
+      <div class="modal-actions" style="margin-top:12px">
+        <button class="btn btn-ghost" onclick="closeTaskPicker()">取消</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Toast -->
+  <div class="toast" id="deleteToast">任务「<span id="deletedTaskName"></span>」已删除 <span class="undo-link" onclick="undoDeleteTask()">撤销</span></div>
+
+  <!-- Tab Bar -->
+  <div class="tab-bar">
+    <button class="tab-item active" data-page="home" onclick="switchPage('home')">
+      <span class="tab-icon">◉</span> 计时
+    </button>
+    <button class="tab-item" data-page="tasks" onclick="switchPage('tasks')">
+      <span class="tab-icon">☰</span> 任务
+    </button>
+    <button class="tab-item" data-page="stats" onclick="switchPage('stats')">
+      <span class="tab-icon">◫</span> 统计
+    </button>
+    <button class="tab-item" data-page="settings" onclick="switchPage('settings')">
+      <span class="tab-icon">◎</span> 设置
+    </button>
+  </div>
+</div>
+
+<script>
+// =======================================================
+//               番茄钟 App - 完整交互逻辑
+// =======================================================
+
+// ===== Data =====
+const CATEGORIES = {
+  '学习': { color: '#0066cc', icon: '' },
+  '工作': { color: '#0066cc', icon: '' },
+  '阅读': { color: '#0066cc', icon: '' },
+  '健身': { color: '#0066cc', icon: '' }
+};
+const PRIORITY_LABELS = { high: '高优先级', medium: '中优先级', low: '低优先级' };
+const STATUS_SECTIONS = [
+  { key: 'in_progress', label: '进行中' },
+  { key: 'pending', label: '未开始' },
+  { key: 'completed', label: '已完成' }
+];
+const STATUS_LABELS = { in_progress: '进行中', pending: '未开始', completed: '已完成', cancelled: '已取消' };
+
+let tasks = [];
+let currentFilter = 'all';
+let editingTaskId = null;
+let boundTaskId = null;
+let deletedTaskBackup = null;
+let undoTimeout = null;
+let nextTaskId = 1;
+
+function generateId() { return 't' + (nextTaskId++); }
+
+// ===== Storage =====
+function saveTasks() {
+  localStorage.setItem('tomato_tasks', JSON.stringify(tasks));
+  localStorage.setItem('tomato_nextId', nextTaskId);
+  localStorage.setItem('tomato_boundTaskId', boundTaskId || '');
+}
+function loadTasks() {
+  const raw = localStorage.getItem('tomato_tasks');
+  if (raw) {
+    try { tasks = JSON.parse(raw); } catch(e) { initDefaultTasks(); }
+    if (!tasks.length) initDefaultTasks();
+  } else {
+    initDefaultTasks();
+  }
+  nextTaskId = parseInt(localStorage.getItem('tomato_nextId')) || (tasks.length + 10);
+  boundTaskId = localStorage.getItem('tomato_boundTaskId') || null;
+}
+
+function initDefaultTasks() {
+  tasks = [
+    { id: 't1', name: '完成项目需求文档', description: '整理V2.0版本所有功能点与交互细节', estimatedTomatoes: 4, completedTomatoes: 2, durationMinutes: 25, priority: 'medium', category: '工作', status: 'in_progress' },
+    { id: 't2', name: '复习高等数学第三章', description: '重点复习微积分应用与习题', estimatedTomatoes: 3, completedTomatoes: 0, durationMinutes: 45, priority: 'high', category: '学习', status: 'pending' },
+    { id: 't3', name: '阅读《深度工作》', description: '完成第5-7章，做好读书笔记', estimatedTomatoes: 2, completedTomatoes: 0, durationMinutes: 25, priority: 'medium', category: '阅读', status: 'pending' },
+    { id: 't4', name: '整理学习笔记', description: '本周课程内容汇总', estimatedTomatoes: 3, completedTomatoes: 3, durationMinutes: 15, priority: 'low', category: '学习', status: 'completed' }
+  ];
+}
+
+// ===== Render Tasks =====
+function renderTasks() {
+  const container = document.getElementById('taskList');
+  let filtered = currentFilter === 'all' ? tasks : tasks.filter(t => t.category === currentFilter);
+  if (!filtered.length) {
+    container.innerHTML = `<div class="empty-state"><div class="empty-icon">☰</div><div class="empty-text">暂无任务</div><div class="empty-hint">点击 + 添加新任务</div></div>`;
+    return;
+  }
+
+  const order = { in_progress: 0, pending: 1, completed: 2, cancelled: 3 };
+  const prioOrder = { high: 0, medium: 1, low: 2 };
+  filtered = [...filtered].sort((a, b) => order[a.status] - order[b.status] || prioOrder[a.priority] - prioOrder[b.priority]);
+
+  let html = '';
+  let lastStatus = null;
+  filtered.forEach(t => {
+    if (t.status !== lastStatus) {
+      const sec = STATUS_SECTIONS.find(s => s.key === t.status);
+      if (sec) html += `<div class="task-section-label">${sec.label}</div>`;
+      lastStatus = t.status;
+    }
+    html += renderTaskCard(t);
+  });
+  container.innerHTML = html;
+
+  container.querySelectorAll('.task-card').forEach(card => {
+    bindSwipe(card);
+    card.addEventListener('click', function(e) { openTaskModal(card.dataset.taskId); });
+    card.addEventListener('contextmenu', function(e) { e.preventDefault(); showContextMenu(e, card.dataset.taskId); });
+  });
+
+  updateBoundTaskDisplay();
+}
+
+function renderTaskCard(t) {
+  const isDone = t.status === 'completed';
+  const doneStyle = isDone ? 'text-decoration:line-through;color:var(--text-muted)' : '';
+  const prioColors = { high: '#ff3b30', medium: '#ff9f0a', low: '#34c759' };
+  const prioColor = prioColors[t.priority];
+
+  const badgeStyles = {
+    in_progress: 'background:rgba(0,102,204,0.1);color:#0066cc',
+    pending: 'background:transparent;border:0.5px solid var(--card-border);color:var(--text-muted)',
+    completed: 'background:rgba(52,199,89,0.1);color:#34c759'
+  };
+
+  return `<div class="task-row">
+    <div class="task-swipe-bg">
+      <span class="swipe-action action-done">完成</span>
+      <span class="swipe-action action-delete">删除</span>
+    </div>
+    <div class="task-card" data-task-id="${t.id}">
+      <div class="task-priority-bar ${t.priority}"></div>
+      <div class="task-content">
+        <div class="task-name" style="${doneStyle}">${escHtml(t.name)}</div>
+        ${t.description ? `<div class="task-desc" style="${doneStyle}">${escHtml(t.description)}</div>` : ''}
+        <div class="task-meta-row">
+          <span class="task-tomato-count">${t.durationMinutes || 25}分 · ◉ ${t.completedTomatoes}/${t.estimatedTomatoes}</span>
+          <span class="task-category-tag" style="background:var(--card-border);color:var(--text-secondary)">${t.category}</span>
+          ${t.priority !== 'medium' ? `<span style="font-size:12px;color:${prioColor};font-weight:500">${PRIORITY_LABELS[t.priority]}</span>` : ''}
+        </div>
+      </div>
+      <span class="task-status-badge" style="${badgeStyles[t.status] || badgeStyles.pending}">${STATUS_LABELS[t.status]}</span>
+    </div>
+  </div>`;
+}
+
+function escHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+// ===== Swipe =====
+function bindSwipe(card) {
+  let startX = 0, startY = 0, movedX = 0;
+  card.addEventListener('touchstart', function(e) {
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    movedX = 0;
+  }, { passive: true });
+
+  card.addEventListener('touchmove', function(e) {
+    const dx = e.touches[0].clientX - startX;
+    const dy = e.touches[0].clientY - startY;
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 10) {
+      movedX = dx;
+      const clamped = Math.max(-72, Math.min(72, dx));
+      card.style.transform = `translateX(${clamped}px)`;
+      card.style.transition = 'none';
+    }
+  }, { passive: false });
+
+  card.addEventListener('touchend', function() {
+    card.style.transition = 'transform 0.2s cubic-bezier(0.4,0,0.2,1)';
+    if (movedX > 50) {
+      card.classList.add('swiped-right');
+      setTimeout(() => markTaskComplete(card.dataset.taskId), 200);
+    } else if (movedX < -50) {
+      card.classList.add('swiped-left');
+      setTimeout(() => deleteTask(card.dataset.taskId), 200);
+    } else {
+      card.style.transform = '';
+      card.classList.remove('swiped-left', 'swiped-right');
+    }
+    setTimeout(() => { card.style.transform = ''; card.classList.remove('swiped-left', 'swiped-right'); }, 400);
+  });
+}
+
+// ===== Context Menu =====
+function showContextMenu(e, taskId) {
+  const menu = document.getElementById('contextMenu');
+  const task = tasks.find(t => t.id === taskId);
+  if (!task) return;
+
+  const actions = [];
+  if (task.status === 'pending') actions.push({ label: '开始任务', action: 'start' });
+  if (task.status === 'in_progress') actions.push({ label: '暂停任务', action: 'pause' });
+  if (task.status !== 'completed') actions.push({ label: '标记完成', action: 'complete' });
+  actions.push({ label: '编辑', action: 'edit' });
+  actions.push({ label: '删除', action: 'delete', danger: true });
+
+  menu.innerHTML = actions.map(a =>
+    `<button class="context-menu-item${a.danger ? ' danger' : ''}" data-action="${a.action}">${a.label}</button>`
+  ).join('');
+
+  const x = (e.touches ? e.touches[0].clientX : e.clientX) || e.clientX || 0;
+  const y = (e.touches ? e.touches[0].clientY : e.clientY) || e.clientY || 0;
+  menu.style.left = Math.min(x, 220) + 'px';
+  menu.style.top = Math.min(y, 650) + 'px';
+  menu.classList.add('show');
+  menu.dataset.taskId = taskId;
+
+  setTimeout(() => document.addEventListener('click', hideContextMenu, { once: true }), 0);
+}
+
+function hideContextMenu() {
+  document.getElementById('contextMenu').classList.remove('show');
+}
+
+document.getElementById('contextMenu').addEventListener('click', function(e) {
+  const btn = e.target.closest('.context-menu-item');
+  if (!btn) return;
+  const action = btn.dataset.action;
+  const taskId = this.dataset.taskId;
+  hideContextMenu();
+
+  switch (action) {
+    case 'start': updateTaskStatus(taskId, 'in_progress'); break;
+    case 'pause': updateTaskStatus(taskId, 'pending'); break;
+    case 'complete': markTaskComplete(taskId); break;
+    case 'edit': openTaskModal(taskId); break;
+    case 'delete': deleteTask(taskId); break;
+  }
+});
+
+// ===== Task CRUD =====
+function openTaskModal(taskId) {
+  editingTaskId = taskId || null;
+  const modal = document.getElementById('taskModal');
+  document.getElementById('taskModalTitle').textContent = taskId ? '编辑任务' : '添加新任务';
+  document.getElementById('taskModalSubmit').textContent = taskId ? '保存' : '添加';
+
+  if (taskId) {
+    const t = tasks.find(t => t.id === taskId);
+    if (t) {
+      document.getElementById('taskFormName').value = t.name;
+      document.getElementById('taskFormDesc').value = t.description || '';
+      document.getElementById('taskFormTomatoes').value = t.estimatedTomatoes;
+      document.getElementById('taskFormDuration').value = t.durationMinutes || 25;
+      document.getElementById('taskFormPriority').value = t.priority;
+      document.getElementById('taskFormCategory').value = t.category;
+    }
+  } else {
+    document.getElementById('taskFormName').value = '';
+    document.getElementById('taskFormDesc').value = '';
+    document.getElementById('taskFormTomatoes').value = '2';
+    document.getElementById('taskFormDuration').value = '25';
+    document.getElementById('taskFormPriority').value = 'medium';
+    document.getElementById('taskFormCategory').value = '工作';
+  }
+  modal.classList.add('show');
+}
+
+function closeTaskModal() {
+  document.getElementById('taskModal').classList.remove('show');
+  editingTaskId = null;
+}
+
+function submitTask() {
+  const name = document.getElementById('taskFormName').value.trim();
+  if (!name) { alert('请输入任务名称'); return; }
+  const tomatoes = Math.max(1, parseInt(document.getElementById('taskFormTomatoes').value) || 2);
+  const duration = Math.max(5, Math.min(120, parseInt(document.getElementById('taskFormDuration').value) || 25));
+  const data = {
+    name: name,
+    description: document.getElementById('taskFormDesc').value.trim(),
+    estimatedTomatoes: tomatoes,
+    completedTomatoes: 0,
+    durationMinutes: duration,
+    priority: document.getElementById('taskFormPriority').value,
+    category: document.getElementById('taskFormCategory').value
+  };
+
+  if (editingTaskId) {
+    const idx = tasks.findIndex(t => t.id === editingTaskId);
+    if (idx >= 0) {
+      tasks[idx] = { ...tasks[idx], ...data };
+    }
+  } else {
+    tasks.push({ id: generateId(), ...data, status: 'pending' });
+  }
+
+  closeTaskModal();
+  saveTasks();
+  renderTasks();
+  updateHomeStats();
+}
+
+function deleteTask(taskId) {
+  const idx = tasks.findIndex(t => t.id === taskId);
+  if (idx < 0) return;
+  deletedTaskBackup = tasks[idx];
+  tasks.splice(idx, 1);
+  saveTasks();
+  renderTasks();
+  updateHomeStats();
+
+  document.getElementById('deletedTaskName').textContent = deletedTaskBackup.name;
+  document.getElementById('deleteToast').classList.add('show');
+  clearTimeout(undoTimeout);
+  undoTimeout = setTimeout(() => {
+    document.getElementById('deleteToast').classList.remove('show');
+    deletedTaskBackup = null;
+  }, 10000);
+}
+
+function undoDeleteTask() {
+  if (deletedTaskBackup) {
+    tasks.push(deletedTaskBackup);
+    saveTasks();
+    renderTasks();
+    updateHomeStats();
+  }
+  document.getElementById('deleteToast').classList.remove('show');
+  clearTimeout(undoTimeout);
+  deletedTaskBackup = null;
+}
+
+function updateTaskStatus(taskId, newStatus) {
+  const t = tasks.find(t => t.id === taskId);
+  if (t) { t.status = newStatus; saveTasks(); renderTasks(); }
+}
+
+function markTaskComplete(taskId) {
+  const t = tasks.find(t => t.id === taskId);
+  if (t) {
+    t.status = 'completed';
+    t.completedTomatoes = t.estimatedTomatoes;
+    saveTasks();
+    renderTasks();
+    if (boundTaskId === taskId) updateBoundTaskDisplay();
+  }
+}
+
+// ===== Filter =====
+document.getElementById('taskFilterBar').addEventListener('click', function(e) {
+  const chip = e.target.closest('.filter-chip');
+  if (!chip) return;
+  this.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  chip.classList.add('active');
+  currentFilter = chip.dataset.cat;
+  renderTasks();
+});
+
+// ===== Task Binding =====
+function updateBoundTaskDisplay() {
+  const nameEl = document.getElementById('boundTaskName');
+  const metaEl = document.querySelector('.task-bind-meta');
+  if (boundTaskId) {
+    const t = tasks.find(t => t.id === boundTaskId);
+    if (t && t.status !== 'completed' && t.status !== 'cancelled') {
+      nameEl.textContent = t.name;
+      const dur = t.durationMinutes || 25;
+      metaEl.textContent = `${dur}分钟/番茄 · ◉ ${t.completedTomatoes}/${t.estimatedTomatoes} · ${PRIORITY_LABELS[t.priority]}`;
+      return;
+    }
+    boundTaskId = null;
+    saveTasks();
+  }
+  nameEl.textContent = '未绑定任务';
+  metaEl.textContent = '点击选择要专注的任务';
+}
+
+function showTaskPicker() {
+  const pending = tasks.filter(t => t.status === 'pending' || t.status === 'in_progress');
+  if (!pending.length) { alert('暂无可用任务，请先添加任务'); return; }
+
+  const list = document.getElementById('taskPickerList');
+  list.innerHTML = pending.map(t => {
+    const isBound = t.id === boundTaskId;
+    return `<div class="picker-item${isBound ? ' bound' : ''}" data-task-id="${t.id}" onclick="selectTask('${t.id}')">
+      <div class="picker-item-dot${isBound ? ' bound' : ''}"></div>
+      <div class="picker-item-info">
+        <div class="picker-item-name">${escHtml(t.name)}</div>
+        <div class="picker-item-meta">${t.durationMinutes || 25}分钟/番茄 · ◉ ${t.completedTomatoes}/${t.estimatedTomatoes} · ${t.category}</div>
+      </div>
+      <span class="picker-item-check">✓</span>
+    </div>`;
+  }).join('');
+
+  document.getElementById('taskPickerSheet').classList.add('show');
+}
+
+function selectTask(taskId) {
+  boundTaskId = taskId;
+  syncWorkDuration();
+  if (currentSession === 'work') {
+    resetTimer();
+  }
+  saveTasks();
+  updateBoundTaskDisplay();
+  closeTaskPicker();
+}
+
+function closeTaskPicker() {
+  document.getElementById('taskPickerSheet').classList.remove('show');
+}
+
+// ===== Pages =====
+function switchPage(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+  document.querySelector(`[data-page="${page}"]`).classList.add('active');
+
+  document.getElementById('fabAddTask').style.display = page === 'tasks' ? 'flex' : 'none';
+  const titles = { home: '番茄钟', tasks: '任务列表', stats: '数据统计', settings: '设置' };
+  document.querySelector('#pageHeader h1').textContent = titles[page];
+  document.getElementById('pageContainer').scrollTop = 0;
+  if (page === 'tasks') renderTasks();
+  if (page === 'stats') updateStatsPage();
+}
+
+// ===== Timer =====
+let timerRunning = false;
+let timerInterval = null;
+let currentTime = 25 * 60;
+let currentSession = 'work';
+let sessionDurations = { work: 25*60, shortBreak: 5*60, longBreak: 15*60 };
+let completedSessions = 0;
+
+function syncWorkDuration() {
+  if (boundTaskId) {
+    const t = tasks.find(t => t.id === boundTaskId);
+    if (t && t.durationMinutes) {
+      sessionDurations.work = t.durationMinutes * 60;
+    } else {
+      sessionDurations.work = 25 * 60;
+    }
+  } else {
+    sessionDurations.work = 25 * 60;
+  }
+}
+
+function formatTime(seconds) {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+}
+
+function updateTimerDisplay() {
+  document.getElementById('timerDisplay').textContent = formatTime(currentTime);
+  const labels = { work: '工作中', shortBreak: '短休息', longBreak: '长休息' };
+  document.getElementById('timerLabel').innerHTML = `<span class="timer-session-dot${timerRunning?' running':''}"></span>${labels[currentSession]}`;
+  updateTimerRing();
+}
+
+function updateTimerRing() {
+  const total = sessionDurations[currentSession];
+  const fraction = currentTime / total;
+  const circumference = 2 * Math.PI * 118; // ~741.4
+  const dashLength = circumference * fraction;
+  const ring = document.getElementById('timerRingFg');
+  ring.style.strokeDasharray = dashLength + ' ' + circumference;
+  ring.style.strokeDashoffset = '0';
+}
+
+function toggleTimer() {
+  const btn = document.getElementById('btnPlay');
+  if (timerRunning) {
+    clearInterval(timerInterval);
+    timerRunning = false;
+    btn.textContent = '继续';
+  } else {
+    timerInterval = setInterval(() => {
+      if (currentTime > 0) {
+        currentTime--;
+        updateTimerDisplay();
+      } else {
+        clearInterval(timerInterval);
+        timerRunning = false;
+        btn.textContent = '开始';
+        onTimerComplete();
+        nextSession();
+        updateTimerDisplay();
+      }
+    }, 1000);
+    timerRunning = true;
+    btn.textContent = '暂停';
+  }
+}
+
+function onTimerComplete() {
+  if (currentSession === 'work') {
+    completedSessions++;
+    if (boundTaskId) {
+      const t = tasks.find(t => t.id === boundTaskId);
+      if (t && t.status === 'in_progress') {
+        t.completedTomatoes = Math.min(t.completedTomatoes + 1, t.estimatedTomatoes);
+        if (t.completedTomatoes >= t.estimatedTomatoes) {
+          if (confirm(`任务「${t.name}」已完成所有番茄！是否标记为已完成？`)) {
+            t.status = 'completed';
+          }
+        }
+        saveTasks();
+      }
+    }
+  }
+  updateHomeStats();
+  if (document.getElementById('page-tasks').classList.contains('active')) renderTasks();
+}
+
+function resetTimer() {
+  clearInterval(timerInterval);
+  timerRunning = false;
+  currentTime = sessionDurations[currentSession];
+  document.getElementById('btnPlay').textContent = '开始';
+  updateTimerDisplay();
+}
+
+function nextSession() {
+  if (currentSession === 'work') {
+    currentSession = (completedSessions > 0 && completedSessions % 4 === 0) ? 'longBreak' : 'shortBreak';
+  } else {
+    currentSession = 'work';
+    syncWorkDuration();
+  }
+  currentTime = sessionDurations[currentSession];
+}
+
+function switchSession() {
+  if (timerRunning && !confirm('切换时段将重置当前计时，是否继续？')) return;
+  resetTimer();
+  nextSession();
+  updateTimerDisplay();
+}
+
+function skipSession() {
+  if (timerRunning && !confirm('确定跳过当前时段吗？')) return;
+  resetTimer();
+  nextSession();
+  updateTimerDisplay();
+}
+
+// ===== Stats =====
+function updateHomeStats() {
+  const stats = getTodayStats();
+  const todayTomatoes = stats.sessions;
+  const todayMinutes = stats.minutes;
+  document.getElementById('todayTomatoes').textContent = todayTomatoes;
+  document.getElementById('todayFocus').textContent = Math.floor(todayMinutes/60) + 'h ' + (todayMinutes%60) + 'm';
+  const goal = 8;
+  document.getElementById('todayProgress').textContent = Math.min(100, Math.round(todayTomatoes / goal * 100)) + '%';
+}
+
+function getTodayStats() {
+  const today = new Date().toDateString();
+  let stored = {};
+  try { stored = JSON.parse(localStorage.getItem('tomato_daily') || '{}'); } catch(e) {}
+  return stored[today] || { sessions: 0, minutes: 0 };
+}
+
+function saveTodayStats(sessions, minutes) {
+  const today = new Date().toDateString();
+  let stored = {};
+  try { stored = JSON.parse(localStorage.getItem('tomato_daily') || '{}'); } catch(e) {}
+  stored[today] = { sessions: sessions, minutes: minutes };
+  localStorage.setItem('tomato_daily', JSON.stringify(stored));
+}
+
+const origOnTimerComplete = onTimerComplete;
+onTimerComplete = function() {
+  origOnTimerComplete();
+  if (currentSession === 'work') {
+    const stats = getTodayStats();
+    saveTodayStats(stats.sessions + 1, stats.minutes + Math.floor(sessionDurations.work / 60));
+  }
+};
+
+function updateStatsPage() {
+  const totalTomatoes = tasks.reduce((s, t) => s + t.completedTomatoes, 0);
+  const totalMinutes = tasks.reduce((s, t) => s + t.completedTomatoes * (t.durationMinutes || 25), 0);
+  document.getElementById('statsHighlightCards').innerHTML = `
+    <div class="stats-highlight-card"><div class="hl-icon">◉</div><div class="hl-num" style="color:var(--accent)">${totalTomatoes}</div><div class="hl-label">总番茄数</div></div>
+    <div class="stats-highlight-card"><div class="hl-icon">◷</div><div class="hl-num">${(totalMinutes/60).toFixed(1)}h</div><div class="hl-label">总专注时长</div></div>
+    <div class="stats-highlight-card"><div class="hl-icon">◫</div><div class="hl-num">${(totalMinutes/60/7).toFixed(1)}h</div><div class="hl-label">日均专注</div></div>
+  `;
+}
+
+function switchStatsPeriod(btn) {
+  document.querySelectorAll('.period-option').forEach(o => o.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// ===== Theme =====
+function toggleTheme() {
+  const html = document.documentElement;
+  const current = html.getAttribute('data-theme');
+  const next = current === 'dark' ? 'light' : 'dark';
+  html.setAttribute('data-theme', next);
+  const labelEl = document.getElementById('themeLabel');
+  if (labelEl) labelEl.textContent = next === 'dark' ? '深色' : '浅色';
+}
+
+// ===== Init =====
+loadTasks();
+syncWorkDuration();
+currentTime = sessionDurations.work;
+updateTimerDisplay();
+updateHomeStats();
+</script>
+
+</body>
+</html>
